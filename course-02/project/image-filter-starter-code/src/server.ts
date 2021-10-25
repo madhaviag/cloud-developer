@@ -31,6 +31,31 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   //! END @TODO1
   
+  app.get("/filteredimage",async(req,res)=>{
+    let image_url:string = req.query.image_url;
+    //validate the image_url query 
+   const isValidURL = image_url.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);  
+    if (isValidURL == null)
+    return res.status(400).send('Invalid URL');
+    else{
+    //call filterImageFromURL)image_url) to filter the image
+    const filteredImage:string = await filterImageFromURL(image_url);
+    if(filteredImage==null || filteredImage==undefined)
+     return res.status(400).send('Unable to filter the provided image');
+    else {
+      res.on('close',function(){
+        deleteLocalFiles([filteredImage]);
+      })
+      console.log("Image Filtered successfully!");
+       
+        return res.status(200).sendFile(''+filteredImage);
+
+     
+    }    
+    }
+    
+  })
+  
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
